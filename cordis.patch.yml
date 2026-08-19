@@ -1,0 +1,28 @@
+﻿# dsh-web-search-bing profile patch layer.
+#
+# Two effects, both in the HOST composition (`ctx.web` is host-plane):
+#
+# 1. Insert one loader row for this plugin package, which registers the
+#    `bing-free` search provider via `ctx.web.registerSearchProvider(...)`.
+#    It runs after dsh-web-app's own patch layer because this bundle is listed
+#    after `@deepseek-ai/dsh-web-app` in the profile's `dsh.profile.bundles`.
+#
+# 2. Override the base `web` row's provider selection from `deepseek-official`
+#    (which spends a DeepSeek model turn per search) to `bing-free` (which is
+#    a free public HTML query via cn.bing.com, accessible from mainland China).
+#    The base row restates ONLY `searchProvider`; replacing its whole config with
+#    the same single key keeps the override intent-explicit.
+#
+# Because `bing-free` is explicitly configured, the seam never hits
+# WEB_PROVIDER_AMBIGUOUS even though `deepseek-official` may also be registered
+# and available. To fall back to DeepSeek search later, change
+# `searchProvider` below back to `deepseek-official` (and optionally remove this
+# insert row).
+- id: web
+  config:
+    searchProvider: bing-free
+
+- insert:
+    - id: web-search-bing
+      name: 'dsh-web-search-bing'
+

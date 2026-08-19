@@ -1,0 +1,47 @@
+﻿{
+    "name":  "dsh-web-search-bing",
+    "description":  "Free Bing-backed web search provider for DeepSeek Harness (DSH). No API key needed, uses cn.bing.com for mainland China accessibility.",
+    "version":  "0.1.0",
+    "license":  "MIT",
+    "type":  "module",
+    "main":  "lib/index.js",
+    "types":  "lib/types/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./lib/types/index.d.ts",
+                              "default":  "./lib/index.js"
+                          },
+                    "./package.json":  "./package.json"
+                },
+    "files":  [
+                  "lib/index.js",
+                  "lib/types",
+                  "cordis.patch.yml"
+              ],
+    "engines":  {
+                    "node":  "\u003e=18"
+                },
+    "dsh":  {
+                "bundle":  {
+                               "patch":  "./cordis.patch.yml"
+                           }
+            },
+    "peerDependencies":  {
+                             "@deepseek-ai/dsh-agent":  "^0.1.0-rc.6",
+                             "@deepseek-ai/dsh-settings":  "^0.1.0-rc.6",
+                             "@deepseek-ai/dsh-web":  "^0.1.0-rc.6",
+                             "@deepseek-ai/cordis":  "^4.0.1",
+                             "@deepseek-ai/schemastery":  "^3.18.1"
+                         },
+    "keywords":  [
+                     "deepseek-harness",
+                     "dsh",
+                     "dsh-plugin",
+                     "plugin",
+                     "search",
+                     "web-search",
+                     "bing",
+                     "free",
+                     "cn-bing"
+                 ]
+}
