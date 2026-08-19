@@ -1,0 +1,8 @@
+﻿*.md text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.ts text eol=lf
+*.svg text eol=lf
+*.txt text eol=lf
+LICENSE text eol=lf
