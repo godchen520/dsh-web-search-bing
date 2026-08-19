@@ -1,7 +1,7 @@
-﻿{
+{
     "name":  "dsh-web-search-bing",
     "description":  "Free Bing-backed web search provider for DeepSeek Harness (DSH). No API key needed, uses cn.bing.com for mainland China accessibility.",
-    "version":  "0.1.0",
+    "version":  "1.0.2",
     "license":  "MIT",
     "type":  "module",
     "main":  "lib/index.js",

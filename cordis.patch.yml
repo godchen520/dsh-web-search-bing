@@ -1,4 +1,4 @@
-﻿# dsh-web-search-bing profile patch layer.
+# dsh-web-search-bing profile patch layer.
 #
 # Two effects, both in the HOST composition (`ctx.web` is host-plane):
 #
@@ -25,4 +25,3 @@
 - insert:
     - id: web-search-bing
       name: 'dsh-web-search-bing'
-
