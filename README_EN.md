@@ -1,4 +1,4 @@
-﻿# dsh-web-search-bing
+# dsh-web-search-bing
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DSH Compatible](https://img.shields.io/badge/DSH-1.x-brightgreen)](https://github.com/deepseek-ai/deepseek-harness)
@@ -6,18 +6,18 @@
 > Free Bing-backed web search provider for DeepSeek Harness (DSH). No API key needed, no search quota consumed.
 
 <p align="right">
-  <b>English</b> | <a href="README.md">涓枃</a>
+  <b>English</b> | <a href="README.md">中文</a>
 </p>
 
-## 鉁?Features
+## ✅ Features
 
-- **Completely Free** 鈥?Uses Bing's public HTML search page, no API key required
-- **China Accessible** 鈥?Defaults to `cn.bing.com`, works in mainland China
-- **Zero Quota** 鈥?Doesn't consume DeepSeek or any LLM search quota
-- **Plug & Play** 鈥?Automatically replaces the default search provider after install
-- **Configurable** 鈥?Switch endpoints, language, and result count
+- **Completely Free** — Uses Bing's public HTML search page, no API key required
+- **China Accessible** — Defaults to `cn.bing.com`, works in mainland China
+- **Zero Quota** — Doesn't consume DeepSeek or any LLM search quota
+- **Plug & Play** — Automatically replaces the default search provider after install
+- **Configurable** — Switch endpoints, language, and result count
 
-## 馃殌 Installation
+## 📦 Installation
 
 ```bash
 cd $DSH_HOME/profiles/web
@@ -26,9 +26,9 @@ pnpm add github:godchen520/dsh-web-search-bing
 
 Add `"dsh-web-search-bing"` to `dsh.profile.bundles` in `package.json`, restart DSH.
 
-## 鈿欙笍 Configuration
+## ⚙️ Configuration
 
-Adjust in DSH Settings 鈫?Plugins:
+Adjust in DSH Settings → Plugins:
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -39,20 +39,19 @@ Adjust in DSH Settings 鈫?Plugins:
 Or override in `cordis.patch.yml`:
 
 ```yaml
-- id: web-search-duckduckgo
+- id: web-search-bing
   config:
     endpoint: https://cn.bing.com/search
     maxResults: 15
     ensearch: 0
 ```
 
-## 馃敡 How It Works
+## 🔍 How It Works
 
-Queries `cn.bing.com/search` 鈫?parses HTML results 鈫?extracts title/URL/snippet 鈫?returns to DSH's `web_search` tool.
+Queries `cn.bing.com/search` → parses HTML results → extracts title/URL/snippet → returns to DSH's `web_search` tool.
 
 **No API key, no registration, works out of the box.**
 
-## 馃搫 License
+## 📄 License
 
 [MIT](LICENSE)
-

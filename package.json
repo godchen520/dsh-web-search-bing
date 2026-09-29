@@ -1,47 +1,45 @@
 {
-    "name":  "dsh-web-search-bing",
-    "description":  "Free Bing-backed web search provider for DeepSeek Harness (DSH). No API key needed, uses cn.bing.com for mainland China accessibility.",
-    "version":  "1.0.2",
-    "license":  "MIT",
-    "type":  "module",
-    "main":  "lib/index.js",
-    "types":  "lib/types/index.d.ts",
-    "exports":  {
-                    ".":  {
-                              "types":  "./lib/types/index.d.ts",
-                              "default":  "./lib/index.js"
-                          },
-                    "./package.json":  "./package.json"
-                },
-    "files":  [
-                  "lib/index.js",
-                  "lib/types",
-                  "cordis.patch.yml"
-              ],
-    "engines":  {
-                    "node":  "\u003e=18"
-                },
-    "dsh":  {
-                "bundle":  {
-                               "patch":  "./cordis.patch.yml"
-                           }
-            },
-    "peerDependencies":  {
-                             "@deepseek-ai/dsh-agent":  "^0.1.0-rc.6",
-                             "@deepseek-ai/dsh-settings":  "^0.1.0-rc.6",
-                             "@deepseek-ai/dsh-web":  "^0.1.0-rc.6",
-                             "@deepseek-ai/cordis":  "^4.0.1",
-                             "@deepseek-ai/schemastery":  "^3.18.1"
-                         },
-    "keywords":  [
-                     "deepseek-harness",
-                     "dsh",
-                     "dsh-plugin",
-                     "plugin",
-                     "search",
-                     "web-search",
-                     "bing",
-                     "free",
-                     "cn-bing"
-                 ]
+  "name": "dsh-web-search-bing",
+  "description": "Free Bing-backed web search provider for the DeepSeek Harness web capability seam (ctx.web). Queries Bing's public HTML search page (cn.bing.com, reachable from mainland China), so web_search works with no API key and without consuming DeepSeek (or any LLM) search quota. Targets DSH 0.2.x (settings forms generated from the exported Config schema; no dsh-settings import).",
+  "version": "1.1.1",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/types",
+    "cordis.patch.yml"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-web": "^0.2.0-rc.2",
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "plugin",
+    "search",
+    "web-search",
+    "bing",
+    "cn-bing",
+    "free"
+  ]
 }
