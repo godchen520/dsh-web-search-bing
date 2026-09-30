@@ -31,24 +31,33 @@ export type ConfigField<T> = T | { get(): T } | undefined;
 
 /** The validated plugin configuration DSH passes to {@link apply}. */
 export interface BingSearchConfig {
-    /** Public HTML search endpoint (mirror/proxy allowed). */
+    /** Public search endpoint (mirror/proxy allowed). */
     readonly endpoint?: ConfigField<string>;
     /** Upper bound on parsed results per page. */
     readonly maxResults?: ConfigField<number>;
     /** `ensearch` query param: `0` = Chinese results, `1` = English. */
     readonly ensearch?: ConfigField<number>;
+    /** Try the RSS transport before the HTML one (default `true`). */
+    readonly preferRss?: ConfigField<boolean>;
 }
 
 /**
  * The Bing-backed free provider, satisfying {@link WebSearchProvider}.
  * `available()` is always `true` (no key, credential, or environment needed).
+ *
+ * Each search prefers Bing's RSS feed (structured XML, carries `publishedAt`)
+ * and falls back to scraping the HTML result page when the feed is empty or
+ * fails. Cancellation is never swallowed by the fallback.
  */
 export declare class BingFreeSearchProvider implements WebSearchProvider {
     readonly id: string;
-    constructor(endpoint?: string, maxResults?: number, ensearch?: number);
+    constructor(endpoint?: string, maxResults?: number, ensearch?: number, preferRss?: boolean);
     available(): boolean;
     search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult>;
 }
+
+/** Default for {@link BingSearchConfig.preferRss}. */
+export declare const DEFAULT_PREFER_RSS: boolean;
 
 /** Cordis plugin name (loader diagnostics). */
 export declare const name: string;

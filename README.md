@@ -50,26 +50,45 @@ dsh web
 设置项由 host 从插件导出的 `Config` schema 自动生成，出现在 **设置 → Plugins** 页面
 （注意：专属的「网页搜索」设置页是内置 DeepSeek provider 的，本插件不在那里）。
 
-三个字段都是 `.volatile()`，保存后**下一次搜索即时生效**：
+四个字段都是 `.volatile()`，保存后**下一次搜索即时生效**：
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
 | `endpoint` | `https://cn.bing.com/search` | 搜索端点（可换镜像/代理） |
-| `maxResults` | `20` | 单页解析结果上限（seam 还会按 `searchMaxResults` 再截断） |
+| `maxResults` | `10` | 单页解析结果上限（seam 还会按 `searchMaxResults` 再截断） |
 | `ensearch` | `0` | `0`=中文结果，`1`=英文 |
+| `preferRss` | `true` | 优先走 RSS；设 `false` 强制走 HTML 抓取 |
 
 ## 工作原理
 
+**双通道：RSS 优先，HTML 兜底。**
+
 ```
 web_search 工具 → ctx.web.search() → bing-free provider
-              → GET cn.bing.com/search?q=...&ensearch=0
-              → 解析 <li class="b_algo"> → {url, title, snippet}
-              → 返回给 dsh-tool-web 渲染
+   │
+   ├─ 1) GET cn.bing.com/search?q=...&ensearch=0&format=rss   ← 默认主路径
+   │     结构化 XML：<title> / <link> / <description> / <pubDate>
+   │     有 <item> → 直接映射（含 publishedAt），完成
+   │     无 <item> / 非 feed / 请求失败 ↓
+   │
+   └─ 2) GET cn.bing.com/search?q=...&ensearch=0              ← 兜底
+         解析 <li class="b_algo"> → {url, title, snippet}
 ```
 
-- 运行时会带上浏览器 UA（Bing 会拒绝裸 Node/undici agent）。
+| | RSS 通道（主） | HTML 通道（兜底） |
+|---|---|---|
+| 体积 | ~4 KB | ~100 KB |
+| 摘要 | 完整段落 | 被 lineclamp 截断 + 需清 UI 尾巴 |
+| `publishedAt` | ✅ 有（`<pubDate>`） | ❌ 无 |
+| 抗变化 | 标准 RSS 字段 | 依赖 `b_algo` / `b_lineclamp*` class 名 |
+| 相关性 | — **两者完全相同**（同一批结果、同一顺序） | — |
+
+其他行为：
+
+- 带浏览器 UA（Bing 会拒绝裸 Node/undici agent）。
 - 命中 captcha/风控页时抛结构化 `WEB_PROVIDER_ERROR`，**不会**伪装成「无结果」。
-- 支持 `AbortSignal` 取消。
+- 支持 `AbortSignal` 取消，且**取消不会被兜底吞掉**。
+- `&count=` 对两种通道都无效，Bing 每页固定约 10 条。
 
 ## 兼容性
 
@@ -85,7 +104,7 @@ web_search 工具 → ctx.web.search() → bing-free provider
 ## 测试
 
 ```bash
-node tests/parse.smoke.test.cjs   # 25 项 HTML 解析测试
+node tests/parse.smoke.test.cjs   # 40 项：HTML 解析 / 实体 / UI 清理 / RSS feed / 本地化 pubDate
 ```
 
 ## License

@@ -2,6 +2,42 @@
 
 本文件记录 `dsh-web-search-bing` 的版本变更。
 
+## [1.2.0] — 双通道：RSS 优先 + HTML 兜底
+
+### 新增
+
+- **RSS 通道（默认优先）**：Bing 的 `&format=rss` 输出。每个 `<item>` 直接给出
+  `<title>` / `<link>` / `<description>` / `<pubDate>`，无需 HTML 启发式解析。
+  - 体积从 ~100 KB HTML 降到 ~4 KB XML。
+  - 摘要为**完整段落**，从结构上杜绝「实体解码」「阅读更多 UI 尾巴」这类问题。
+  - `<pubDate>` 映射为 `publishedAt`（**这是 HTML 通道拿不到的新字段**）。
+  - 抗变化：Bing 改 HTML class 名不再影响主路径。
+- **HTML 通道保留为兜底**：RSS 返回 0 条、非 feed 内容、或请求失败时自动回退。
+  取消信号（`AbortSignal`）**不会**被兜底吞掉。
+- 新配置项 `preferRss`（默认 `true`，`.volatile()`）：设为 `false` 可强制走 HTML。
+
+### 修复
+
+- **`search()` 返回合约**：HTML 分支此前直接返回 sources 数组，未包成
+  `{ sources, truncated }`，会导致 seam 拿到 `undefined`。由真实网络 e2e 测试发现。
+
+### 说明（实测结论）
+
+- **RSS 不改变相关性**：同一 query 下 HTML 与 RSS 返回**完全相同的 10 条结果**，
+  顺序一致。RSS 的收益在健壮性、体积与摘要质量，不在排序。
+- `&count=` 对两种通道均无效，Bing 每页固定约 10 条。
+- RSS 的 `pubDate` 是**本地化** RFC-822（`周三, 30 9月 2026 13:31:00 GMT`），
+  `new Date()` 解析为 `Invalid Date`（已实测）；英文形式可原生解析。故
+  `parseRssDate()` 先试原生、再手工组装中文月份/星期。
+
+### 校验
+
+- 单元测试 **40 项**通过（HTML 解析 / 实体 / UI 清理 / RSS feed / 本地化 pubDate）。
+- 真实网络 e2e **12 项**通过（RSS 优先、强制 HTML、RSS 非 feed 回退、RSS 抛错回退、
+  取消不被吞、空 query）。
+- 真实 seam 集成：`ctx.web.search()` 命中 `bing-free`，339ms，4 条 + `truncated: true`，
+  每条带 `publishedAt`。
+
 ## [1.1.1] — 适配 DSH 0.2.x 配置 API + 实测修复
 
 ### 变更（Breaking，针对旧 DSH）

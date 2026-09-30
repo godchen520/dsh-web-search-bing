@@ -1,7 +1,7 @@
 {
   "name": "dsh-web-search-bing",
-  "description": "Free Bing-backed web search provider for the DeepSeek Harness web capability seam (ctx.web). Queries Bing's public HTML search page (cn.bing.com, reachable from mainland China), so web_search works with no API key and without consuming DeepSeek (or any LLM) search quota. Targets DSH 0.2.x (settings forms generated from the exported Config schema; no dsh-settings import).",
-  "version": "1.1.1",
+  "description": "Free Bing-backed web search provider for the DeepSeek Harness web capability seam (ctx.web). Prefers Bing's RSS feed (clean structured XML) with HTML scraping as the fallback, against cn.bing.com (reachable from mainland China), so web_search works with no API key and without consuming DeepSeek (or any LLM) search quota. Targets DSH 0.2.x (settings forms generated from the exported Config schema; no dsh-settings import).",
+  "version": "1.2.0",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",

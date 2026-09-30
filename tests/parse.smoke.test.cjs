@@ -80,6 +80,67 @@ function looksBlocked(html) {
   return /(captcha|verify you are human|are you a robot|unusual traffic|access denied|challenge-platform)/.test(lower);
 }
 
+// ---- RSS transport helpers (mirror of lib/index.js) ----
+const MONTH_PREFIXES = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+};
+
+function monthNumber(token) {
+  const numeric = /^(\d{1,2})\s*月?$/.exec(token);
+  if (numeric != null) {
+    const n = Number(numeric[1]);
+    return n >= 1 && n <= 12 ? n : undefined;
+  }
+  return MONTH_PREFIXES[token.slice(0, 3).toLowerCase()];
+}
+
+function pad2(value) { return String(value).padStart(2, "0"); }
+
+function parseRssDate(raw) {
+  if (raw == null) return undefined;
+  const text = raw.trim();
+  if (text.length === 0) return undefined;
+  const direct = new Date(text);
+  if (!Number.isNaN(direct.getTime())) return direct.toISOString();
+  const m = /(\d{1,2})\s+(\S+?)\s+(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(GMT|UTC|Z|([+-])(\d{2}):?(\d{2}))?/i.exec(text);
+  if (m == null) return undefined;
+  const month = monthNumber(m[2]);
+  if (month === undefined) return undefined;
+  const zone = m[8] === undefined ? "Z" : `${m[8]}${m[9]}:${m[10]}`;
+  const parsed = new Date(`${Number(m[3])}-${pad2(month)}-${pad2(Number(m[1]))}T${pad2(Number(m[4]))}:${pad2(Number(m[5]))}:${pad2(m[6] === undefined ? 0 : Number(m[6]))}${zone}`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+function xmlField(block, tag) {
+  const m = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i").exec(block);
+  if (m == null) return "";
+  return decodeHtml(m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1"));
+}
+
+function parseRssFeed(xml, maxResults) {
+  const sources = [];
+  const seen = new Set();
+  const itemRe = /<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi;
+  let match;
+  while ((match = itemRe.exec(xml)) !== null && (maxResults == null || sources.length < maxResults)) {
+    const block = match[1];
+    const url = xmlField(block, "link");
+    if (url.length === 0 || !/^https?:\/\//i.test(url) || seen.has(url)) continue;
+    seen.add(url);
+    const title = xmlField(block, "title");
+    const description = xmlField(block, "description");
+    const publishedAt = parseRssDate(xmlField(block, "pubDate"));
+    sources.push({
+      url,
+      ...(title.length > 0 ? { title } : {}),
+      ...(description.length > 0 ? { snippet: description } : {}),
+      ...(publishedAt !== undefined ? { publishedAt } : {})
+    });
+  }
+  return sources;
+}
+
 // ---- Test data ----
 const sample = `<!DOCTYPE html><html><body>
 <ol>
@@ -162,6 +223,45 @@ check("chrome: 阅读更多 removed", !chrome[0].snippet.includes("阅读更多"
 check("chrome: trailing ellipsis removed", chrome[0].snippet === "DeepSeek Harness is now available to developers worldwide, with");
 check("chrome: Read more removed", chrome[1].snippet === "An English result that ends with a label");
 check("chrome: real period preserved", chrome[2].snippet === "This sentence ends with a real period.");
+
+console.log("== RSS transport: feed parsing ==");
+const rssSample = `<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>必应：亚运会金牌</title>
+<item>
+  <title>奖牌榜_第20届亚运会_体育_央视网 (cctv.com)</title>
+  <link>https://yayun.cctv.com/2026/medal_list/index.shtml</link>
+  <description>第20届亚运会将于2026年9月19日至10月4日在日本爱知·名古屋举行，央视网搭建亚运会全端专题。</description>
+  <pubDate>周三, 30 9月 2026 13:31:00 GMT</pubDate>
+</item>
+<item>
+  <title><![CDATA[English item & more]]></title>
+  <link><![CDATA[https://www.olympics.com/zh/news/medal-table]]></link>
+  <description>Plain English description.</description>
+  <pubDate>Wed, 30 Sep 2026 13:24:00 GMT</pubDate>
+</item>
+<item>
+  <title>No link item</title>
+  <description>should be skipped</description>
+</item>
+</channel></rss>`;
+const feed = parseRssFeed(rssSample, null);
+check("rss: 2 sources (linkless skipped)", feed.length === 2);
+check("rss: title parsed", feed[0].title === "奖牌榜_第20届亚运会_体育_央视网 (cctv.com)");
+check("rss: link parsed", feed[0].url === "https://yayun.cctv.com/2026/medal_list/index.shtml");
+check("rss: description -> snippet", feed[0].snippet.startsWith("第20届亚运会将于2026年9月19日"));
+check("rss: CDATA title unwrapped", feed[1].title === "English item & more");
+check("rss: CDATA link unwrapped", feed[1].url === "https://www.olympics.com/zh/news/medal-table");
+check("rss: publishedAt present", typeof feed[0].publishedAt === "string");
+check("rss: cap honored", parseRssFeed(rssSample, 1).length === 1);
+check("rss: non-feed body -> empty", parseRssFeed("<html>captcha</html>", null).length === 0);
+
+console.log("== RSS transport: localized pubDate ==");
+check("rss: Chinese weekday/month parsed", parseRssDate("周三, 30 9月 2026 13:31:00 GMT") === "2026-09-30T13:31:00.000Z");
+check("rss: English RFC-822 parsed", parseRssDate("Wed, 30 Sep 2026 13:24:00 GMT") === "2026-09-30T13:24:00.000Z");
+check("rss: Chinese 1-digit month", parseRssDate("周一, 5 1月 2026 08:05:00 GMT") === "2026-01-05T08:05:00.000Z");
+check("rss: native Date() would fail on Chinese form", Number.isNaN(new Date("周三, 30 9月 2026 13:31:00 GMT").getTime()));
+check("rss: garbage -> undefined", parseRssDate("not a date") === undefined);
+check("rss: empty -> undefined", parseRssDate("") === undefined);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
