@@ -2,3 +2,6 @@ node_modules/
 *.log
 .DS_Store
 tools/
+
+# 本机安装记录：含私有绝对路径，不入库
+INSTALL.md

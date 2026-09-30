@@ -2,6 +2,32 @@
 
 本文件记录 `dsh-web-search-bing` 的版本变更。
 
+## [1.2.1] — 补齐端到端测试与开发依赖
+
+纯开发侧改动，**运行时行为与 1.2.0 完全一致**（发布产物 `lib/` 未变）。
+
+### 新增
+
+- **`tests/e2e.provider.test.mjs`** —— 端到端测试，直接 `import` 真实的
+  `BingFreeSearchProvider`（不复制解析逻辑），用桩 `fetch` 驱动两种传输：
+  - **离线 41 项**（确定性，可进 CI）：RSS 优先、强制 HTML、RSS 非 feed 回退、
+    RSS 抛错回退、两通道皆失败、取消不被吞、空 query、captcha 页、`maxResults` 截断、
+    provider 元数据
+  - **`--live` 加 7 项**：真实请求 cn.bing.com，验证两条通道的线上行为，并断言标题/摘要
+    无残留实体、无「阅读更多」UI 尾巴
+- **`devDependencies`**：`@deepseek-ai/dsh-web`、`@deepseek-ai/schemastery`
+  —— 测试需要 import 真实插件代码，而插件会 import 这两个官方包；它们**不进发布产物**
+- **npm 脚本**：`npm test`（离线）、`npm run test:live`（含真实网络）
+- `package-lock.json`：锁定开发依赖版本
+
+### 说明
+
+- 此前 CHANGELOG 里写的「真实网络 e2e 12 项」是开发时临时脚本跑的，**代码未入库、
+  无法复跑**。本次把它固化为可重复执行的测试，任何人 clone 后 `npm install && npm test`
+  即可验证。
+- `tests/parse.smoke.test.cjs` 保持自包含（复制纯解析函数），因此即使没有
+  `node_modules` 也能单独运行。
+
 ## [1.2.0] — 双通道：RSS 优先 + HTML 兜底
 
 ### 新增

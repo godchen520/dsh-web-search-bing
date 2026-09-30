@@ -104,8 +104,24 @@ web_search 工具 → ctx.web.search() → bing-free provider
 ## 测试
 
 ```bash
-node tests/parse.smoke.test.cjs   # 40 项：HTML 解析 / 实体 / UI 清理 / RSS feed / 本地化 pubDate
+npm install        # 首次：安装官方包（测试需要 import 真实的 lib/index.js）
+npm test           # 离线测试：40 + 41 项，确定性，可进 CI
+npm run test:live  # 额外真实请求 cn.bing.com（+7 项，需要网络）
 ```
+
+| 文件 | 内容 |
+|------|------|
+| `tests/parse.smoke.test.cjs` | **40 项纯解析**：HTML 解析 / 命名实体 / UI 尾巴清理 / RSS feed / 本地化 `pubDate`。自包含，不依赖官方包 |
+| `tests/e2e.provider.test.mjs` | **41 项端到端**：直接 `import` 真实的 `BingFreeSearchProvider`（不复制逻辑），用桩 `fetch` 驱动两种传输 |
+
+端到端覆盖的关键行为：
+
+- **RSS 优先**：默认只发一次请求且带 `format=rss`；`publishedAt` 正确映射（含中文 `pubDate`）
+- **HTML 兜底**：`preferRss: false` 时强制走 HTML，且不请求 RSS
+- **回退触发**：RSS 返回非 feed、返回 HTTP 500 —— 都要回退到 HTML
+- **取消不被吞**：`AbortSignal` 取消后抛 `WEB_ABORTED`，不继续回退
+- **空 query / captcha 页**：抛结构化 `WEB_PROVIDER_ERROR`，不伪装成「无结果」
+- **`maxResults` 截断**
 
 ## License
 
