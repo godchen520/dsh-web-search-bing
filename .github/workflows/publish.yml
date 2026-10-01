@@ -1,0 +1,54 @@
+name: Publish to npm
+
+# 通过 GitHub OIDC 的 Trusted Publishing 发布，不使用任何 npm 令牌。
+# 触发方式：在 GitHub 上发布一个 Release。
+#
+# 前置（一次性）：在 npm 上为 @godchen520/dsh-web-search-bing 配置 Trusted Publisher，
+#   指向仓库 godchen520/dsh-web-search-bing + 工作流文件 publish.yml
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Trusted Publishing 必需：允许工作流向 npm 换取 OIDC 身份令牌
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # 测试要 import 真实插件代码，而插件会 import 官方包 —— 必须先装开发依赖
+      - name: Install dev dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      # Trusted Publishing 需要 npm >= 11.5.1；Node 22 自带的是 10.x
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      # 幂等：该版本已存在则跳过，避免重复触发时红叉
+      - name: Check whether this version is already on npm
+        id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VER" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VER 已存在于 npm，跳过发布"
+          fi
+
+      # 不传 NODE_AUTH_TOKEN —— npm 在 id-token: write 下自动使用 OIDC。
+      - name: Publish
+        if: steps.check.outputs.published != 'true'
+        run: npm publish --provenance --access public

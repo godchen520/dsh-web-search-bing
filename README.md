@@ -27,18 +27,19 @@
 ## 安装
 
 ```bash
-# 1. 放进 profile 目录（路径无空格，避免 pnpm 拆参数）
-#    或直接 pnpm add github:godchen520/dsh-web-search-bing
+# 1. 从 npm 安装（推荐）
 cd $DSH_HOME/profiles/web
+pnpm add @godchen520/dsh-web-search-bing
 
-# 2. package.json 的 dependencies 加：
-#    "dsh-web-search-bing": "file:dsh-web-search-bing"
-#    （或 "github:godchen520/dsh-web-search-bing"）
+#    也可以从 GitHub 安装（跟随最新提交）：
+#    pnpm add github:godchen520/dsh-web-search-bing
 
-# 3. package.json 的 dsh.profile.bundles 里加上 "dsh-web-search-bing"
+# 2. package.json 的 dependencies 会自动出现：
+#    "@godchen520/dsh-web-search-bing": "^1.2.2"
 
-# 4. 安装并重启
-dsh plugin --profile web install
+# 3. package.json 的 dsh.profile.bundles 里加上 "@godchen520/dsh-web-search-bing"
+
+# 4. 重启
 dsh web
 ```
 

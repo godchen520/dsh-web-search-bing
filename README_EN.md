@@ -21,10 +21,11 @@
 
 ```bash
 cd $DSH_HOME/profiles/web
-pnpm add github:godchen520/dsh-web-search-bing
+pnpm add @godchen520/dsh-web-search-bing          # from npm (recommended)
+pnpm add github:godchen520/dsh-web-search-bing    # or from GitHub (latest commit)
 ```
 
-Add `"dsh-web-search-bing"` to `dsh.profile.bundles` in `package.json`, restart DSH.
+Add `"@godchen520/dsh-web-search-bing"` to `dsh.profile.bundles` in `package.json`, restart DSH.
 
 ## ⚙️ Configuration
 

@@ -24,4 +24,4 @@
 
 - insert:
     - id: web-search-bing
-      name: 'dsh-web-search-bing'
+      name: '@godchen520/dsh-web-search-bing'

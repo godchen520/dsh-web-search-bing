@@ -2,6 +2,24 @@
 
 本文件记录 `dsh-web-search-bing` 的版本变更。
 
+## [1.2.2] — 发布到 npm（改用组织作用域名）
+
+**运行时行为与 1.2.1 完全一致**，本版只改包的身份与分发方式。
+
+### 改动
+
+- **包名改为 `@godchen520/dsh-web-search-bing`** —— npm 上的 `dsh-web-search-bing`
+  已被其他开发者占用，因此改用组织作用域名。GitHub 仓库名不变。
+- `cordis.patch.yml` 中插入行的 `name` 同步改为作用域名（该名字从 profile 的
+  `node_modules` 解析，必须与包名一致）
+- `package.json` 补齐 `repository` / `homepage`（已发布包必须指回收录仓库，否则不会关联）
+- README / README_EN 安装章节：改为 `pnpm add @godchen520/dsh-web-search-bing`
+
+### 升级注意
+
+老名字 `dsh-web-search-bing` 与新名字**不能并存**。升级时请把 profile 里
+`dependencies` 的键和 `dsh.profile.bundles` 里的条目**一起**换成作用域名。
+
 ## [1.2.1] — 补齐端到端测试与开发依赖
 
 纯开发侧改动，**运行时行为与 1.2.0 完全一致**（发布产物 `lib/` 未变）。
