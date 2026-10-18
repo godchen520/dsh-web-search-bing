@@ -2,6 +2,46 @@
 
 本文件记录 `dsh-web-search-bing` 的版本变更。
 
+## [1.2.3] — 修复 DSH 0.2.1 下 `web_fetch` 全部失败
+
+### 修复（严重）
+
+- **`cordis.patch.yml` 补回 `fetchProvider: http`。**
+
+  DSH 0.2.1-rc.2 给 base 的 `web` 行**新增了 `fetchProvider: http`**。而 cordis
+  patch 的语义是**整体替换** `config` 而非合并，本插件的 patch 此前只重述了
+  `searchProvider`，于是新出现的 `fetchProvider` 被静默抹掉。
+
+  后果：`http` 与新版新增的 `deepseek-fetch-api` 两个抓取 provider 同时可用且
+  没有显式选择，**每一次 `web_fetch` 调用都失败**并抛：
+
+  ```
+  WEB_PROVIDER_AMBIGUOUS: multiple usable web providers are registered
+  (deepseek-fetch-api, http); configure one explicitly
+  ```
+
+  修复后 `web` 行同时重述两个 key（`fetchProvider` 保持 base 默认值 `http`，
+  即免费的本地抓取器；`deepseek-fetch-api` 走 DeepSeek 付费 Search/Fetch API）。
+
+### 说明（为什么这类 bug 会发生）
+
+补丁层必须重述目标行**拥有的每一个 key**，否则被省略的 key 会在整个组合里消失。
+dsh-base 自己的注释也写了这一点（"a patch replaces the targeted row's whole
+`config` … each row below restates every key it owns"）。本文件顶部现已加入醒目
+警告，升级 DSH 时需要对照 base 的 `web` 行同步这份 key 列表。
+
+### 兼容性
+
+| DSH | 状态 |
+|---|---|
+| 0.2.1-rc.2 | ✅ 本版修复后可用 |
+| 0.2.0-rc.2 | ✅ 可用（该版本 base 无 `fetchProvider`，多写一个 key 无副作用） |
+| ≤ 0.1.6 | ❌ 不支持 |
+
+`peerDependencies` 的 `@deepseek-ai/dsh-web` 从 `^0.2.0-rc.2` 改为
+`>=0.2.0-rc.2 <0.3.0`：语义化版本对预发布版的处理规则下，`^0.2.0-rc.2` 不匹配
+`0.2.1-rc.2`（预发布只与同 major.minor.patch 比较），换用区间表达式更准确。
+
 ## [1.2.2] — 发布到 npm（改用组织作用域名）
 
 **运行时行为与 1.2.1 完全一致**，本版只改包的身份与分发方式。

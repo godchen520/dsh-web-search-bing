@@ -7,20 +7,37 @@
 #    It runs after dsh-web-app's own patch layer because this bundle is listed
 #    after `@deepseek-ai/dsh-web-app` in the profile's `dsh.profile.bundles`.
 #
-# 2. Override the base `web` row's provider selection from `deepseek-official`
-#    (which spends a DeepSeek model turn per search) to `bing-free` (which is
-#    a free public HTML query via cn.bing.com, accessible from mainland China).
-#    The base row restates ONLY `searchProvider`; replacing its whole config with
-#    the same single key keeps the override intent-explicit.
+# 2. Select `bing-free` for search, replacing the base row's `deepseek-official`
+#    (which spends a DeepSeek model turn per search). `bing-free` instead issues
+#    one free HTTPS query against cn.bing.com, reachable from mainland China.
+#
+# ⚠️ WHY EVERY `web` KEY MUST BE RESTATED HERE
+#
+# A cordis patch REPLACES the targeted row's whole `config`; it does not merge.
+# So this list must mirror every key the base `web` row owns, or the omitted
+# ones are silently dropped for the whole composition.
+#
+# That is not hypothetical: DSH 0.2.1-rc.2 added `fetchProvider: http` to the
+# base row, and an earlier revision of this file restated only `searchProvider`.
+# The result was that `fetchProvider` vanished, leaving BOTH `http` and the new
+# `deepseek-fetch-api` usable — so every `web_fetch` call failed with
+# WEB_PROVIDER_AMBIGUOUS ("multiple usable web providers are registered").
+#
+# Keep this list in sync with dsh-base's `web` row when upgrading. Values here
+# mirror the base defaults except `searchProvider`.
 #
 # Because `bing-free` is explicitly configured, the seam never hits
-# WEB_PROVIDER_AMBIGUOUS even though `deepseek-official` may also be registered
-# and available. To fall back to DeepSeek search later, change
-# `searchProvider` below back to `deepseek-official` (and optionally remove this
-# insert row).
+# WEB_PROVIDER_AMBIGUOUS for search even though `deepseek-official` and
+# `deepseek-search-api` may also be registered and available. To fall back to
+# DeepSeek's own search later, change `searchProvider` below back to
+# `deepseek-official` (and optionally remove the insert row).
 - id: web
   config:
     searchProvider: bing-free
+    # Preserved base default. `http` is the keyless local fetcher
+    # (`dsh-web-fetch-http`); the alternative is `deepseek-fetch-api`, which
+    # bills per call through the DeepSeek Search/Fetch API.
+    fetchProvider: http
 
 - insert:
     - id: web-search-bing
