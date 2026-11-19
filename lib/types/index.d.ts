@@ -42,6 +42,18 @@ export interface BingSearchConfig {
 }
 
 /**
+ * Display name for host provider pickers (`title` is one plain string shared by
+ * every locale). DSH shows the raw `id` when a provider omits it.
+ */
+export declare const PROVIDER_TITLE: string;
+
+/**
+ * Picker description telling what the provider suits and what it costs or
+ * cannot do, keyed by lowercase language id with a required `en` entry.
+ */
+export declare const PROVIDER_DESCRIPTION: Readonly<Record<string, string>>;
+
+/**
  * The Bing-backed free provider, satisfying {@link WebSearchProvider}.
  * `available()` is always `true` (no key, credential, or environment needed).
  *
@@ -51,6 +63,8 @@ export interface BingSearchConfig {
  */
 export declare class BingFreeSearchProvider implements WebSearchProvider {
     readonly id: string;
+    readonly title: string;
+    readonly description: Readonly<Record<string, string>>;
     constructor(endpoint?: string, maxResults?: number, ensearch?: number, preferRss?: boolean);
     available(): boolean;
     search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult>;

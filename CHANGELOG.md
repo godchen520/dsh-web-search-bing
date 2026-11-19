@@ -2,6 +2,40 @@
 
 本文件记录 `dsh-web-search-bing` 的版本变更。
 
+## [1.3.0] — 在 DSH 设置页的提供方选择器里显示名称与说明
+
+### 新增
+
+- **`title` 与 `description`**：DSH 0.2.2 的 `WebSearchProvider` 新增了这两个可选字段，
+  用于「设置 → 插件 → 网页搜索与获取」里的提供方菜单。此前本插件未设置，菜单里只显示
+  裸 id `bing-free`，选中后也没有任何说明。
+  - `title: "Bing (free)"`：单一字符串、全语言共用，中英文界面都可读。
+  - `description`：`en`（必需）+ `zh` + `ja`，写明「免费、不耗模型额度」以及局限
+    「排序由 Bing 决定，查询含糊时可能跑题或低质，且不提供质量分/权威度信号」。
+- `listProviders()` 现在返回 `{ id, title, description }`，与官方 provider 一致。
+
+### 说明（兼容性）
+
+- 这三个字段都是**可选**的，因此 1.2.x 在 0.2.2 上本来也能正常工作，只是显示朴素；
+  本版只改善呈现，不改变搜索行为。
+- 未实现 `ready?(llmProvider)`：省略即视为「就绪」，符合本插件无凭据依赖的情况。
+
+### 修复 — `peerDependencies` 的预发布版范围陷阱
+
+- `@deepseek-ai/dsh-web` 从 `>=0.2.0-rc.2 <0.3.0` 改为 **`>=0.2.2-rc.0 <0.3.0`**（`peerDependencies`
+  与 `devDependencies` 两处同步）。
+
+  语义化版本对**预发布版**的规则：一个 `-rc.N` 版本只有在范围内存在**同一 `major.minor.patch`**
+  且带预发布标记的比较器时才算匹配。旧范围里的比较器是 `0.2.0-rc.2`，所以 `0.2.2-rc.5`
+  这类「修订号不同」的预发布版本**不匹配**，安装时会报 peer dependency 警告（运行不受影响）。
+
+  实测（semver）：`0.2.2-rc.5` 对旧范围 ❌ 不匹配、对新范围 ✅ 匹配。
+
+### 校验
+
+- 语法检查通过；解析器单元测试 **40 项无回归**。
+- `ctx.web.listProviders()` 实测返回 `{"id":"bing-free","title":"Bing (free)","description":{en,zh,ja}}`。
+
 ## [1.2.3] — 修复 DSH 0.2.1 下 `web_fetch` 全部失败
 
 ### 修复（严重）
